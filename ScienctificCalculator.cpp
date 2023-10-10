@@ -4,7 +4,7 @@
 #include <cctype>
 #include <cmath>
 #include <vector>
-#define CALCULATOR_HPP
+#include "History.h"
 
 using namespace std;
 
@@ -83,8 +83,7 @@ double prioritizeOperators(Node* head) {
             }
         } else if (current->data == "+" || current->data == "-" || current->data == "*" || current->data == "/") {
             // Handle operators with priority
-            while (!operatorStack.empty() &&
-                   (operatorStack.top()->data == "*" || operatorStack.top()->data == "/")) {
+            while (!operatorStack.empty() && (operatorStack.top()->data == "*" || operatorStack.top()->data == "/")) {
                 Node* opNode = operatorStack.top();
                 operatorStack.pop();
                 double operand2 = valueStack.top();
@@ -169,7 +168,7 @@ double prioritizeOperators(Node* head) {
 
 int main() {
     string input;
-    vector<HistoryEntry> history;  // Store calculation history
+    History history;  // Store calculation history
 
     while (true) {
         cout << "Enter a mathematical expression (or 'history', 'delete', or 'exit'): ";
@@ -179,9 +178,7 @@ int main() {
             break;
         } else if (input == "history") {
             // Show calculation history
-            for (size_t i = 0; i < history.size(); ++i) {
-                cout << i + 1 << ": " << history[i].expression << " = " << history[i].result << endl;
-            }
+            history.ShowHistory();
             continue;
         } else if (input == "delete") {
             // Delete a specific entry from history
@@ -190,13 +187,7 @@ int main() {
             cin >> entryToDelete;
             cin.ignore();  // Consume the newline character
 
-            if (entryToDelete >= 1 && entryToDelete <= static_cast<int>(history.size())) {
-                history.erase(history.begin() + entryToDelete - 1);
-                cout << "Entry " << entryToDelete << " deleted from history." << endl;
-            } else {
-                cout << "Invalid entry number." << endl;
-            }
-
+            history.DeleteEntry(entryToDelete);
             continue;
         }
 
@@ -231,7 +222,7 @@ int main() {
         double result = prioritizeOperators(head);
         if (result != 0) {
             cout << "Result: " << result << endl;
-            history.emplace_back(input, result);  // Add to history
+            history.AddEntry(input, result); // Add to history
         }
     }
 
@@ -239,4 +230,3 @@ int main() {
 
     return 0;
 }
-
