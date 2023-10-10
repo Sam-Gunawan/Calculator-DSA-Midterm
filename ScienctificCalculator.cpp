@@ -4,7 +4,6 @@
 #include <cctype>
 #include <cmath>
 #include <vector>
-#include <sstream>
 
 using namespace std;
 
@@ -47,6 +46,7 @@ double prioritizeOperators(Node* head) {
         head = head->next;
 
         if (current->data == "(") {
+            // Handle sub-expression within parentheses
             operatorStack.push(current);
         } else if (isdigit(current->data[0])) {
             // Handle operands (numbers)
@@ -81,11 +81,10 @@ double prioritizeOperators(Node* head) {
             if (!operatorStack.empty()) {
                 operatorStack.pop(); // Remove the opening parenthesis
             }
-        } else if (current->data == "+" || current->data == "-" || current->data == "*" || current->data == "/" || current->data == "sin" || current->data == "cos" || current->data == "tan") {
+        } else if (current->data == "+" || current->data == "-" || current->data == "*" || current->data == "/") {
             // Handle operators with priority
             while (!operatorStack.empty() &&
-                   ((operatorStack.top()->data == "*" || operatorStack.top()->data == "/" || operatorStack.top()->data == "sin" || operatorStack.top()->data == "cos" || operatorStack.top()->data == "tan") ||
-                    (current->data == "+" || current->data == "-") && (operatorStack.top()->data == "+" || operatorStack.top()->data == "-"))) {
+                   (operatorStack.top()->data == "*" || operatorStack.top()->data == "/")) {
                 Node* opNode = operatorStack.top();
                 operatorStack.pop();
                 double operand2 = valueStack.top();
@@ -110,6 +109,9 @@ double prioritizeOperators(Node* head) {
                 valueStack.push(result);
             }
             operatorStack.push(current);
+        } else if (current->data == "sin" || current->data == "cos" || current->data == "tan") {
+            // Handle trigonometric functions
+            operatorStack.push(current);
         } else {
             // Handle other operators
             cout << "Invalid operator: " << current->data << endl;
@@ -123,22 +125,17 @@ double prioritizeOperators(Node* head) {
         operatorStack.pop();
         if (opNode->data == "sin" || opNode->data == "cos" || opNode->data == "tan") {
             // Handle trigonometric functions
-            if (!valueStack.empty()) {
-                double operand = valueStack.top();
-                valueStack.pop();
-                double result;
-                if (opNode->data == "sin") {
-                    result = sin(operand * M_PI / 180.0); // Convert degrees to radians
-                } else if (opNode->data == "cos") {
-                    result = cos(operand * M_PI / 180.0); // Convert degrees to radians
-                } else if (opNode->data == "tan") {
-                    result = tan(operand * M_PI / 180.0); // Convert degrees to radians
-                }
-                valueStack.push(result);
-            } else {
-                cout << "Error: Missing operand for " << opNode->data << endl;
-                return 0;
+            double operand = valueStack.top();
+            valueStack.pop();
+            double result;
+            if (opNode->data == "sin") {
+                result = sin(operand * M_PI / 180.0); // Convert degrees to radians
+            } else if (opNode->data == "cos") {
+                result = cos(operand * M_PI / 180.0); // Convert degrees to radians
+            } else if (opNode->data == "tan") {
+                result = tan(operand * M_PI / 180.0); // Convert degrees to radians
             }
+            valueStack.push(result);
         } else {
             // Handle other operators
             double operand2 = valueStack.top();
@@ -214,11 +211,11 @@ int main() {
             if (isspace(c)) {
                 // Skip whitespace
                 continue;
-            } else if (isdigit(c) || c == '.') {
-                // Accumulate digits and dots to form a number
+            } else if (isdigit(c) || c == '.' || c == '-') {
+                // Accumulate digits, dots, and minus sign to form a number
                 currentToken += c;
             } else if (isalpha(c)) {
-                // Handle trigonometric functions
+                // Accumulate letters to identify trigonometric functions
                 currentToken += c;
             } else {
                 if (!currentToken.empty()) {
