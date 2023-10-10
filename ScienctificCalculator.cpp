@@ -4,7 +4,7 @@
 #include <cctype>
 #include <cmath>
 #include <vector>
-t
+
 using namespace std;
 
 // Define a structure for a node in the linked list
