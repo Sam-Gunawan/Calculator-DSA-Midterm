@@ -75,24 +75,6 @@ double prioritizeOperators(Node* head) {
                         cout << "Error: Division by zero." << endl;
                         return 0;
                     }
-                } else if (opNode->data == "sqrt") {
-                    result = sqrt(operand2);
-                } else if (opNode->data == "exp") {
-                    result = exp(operand2);
-                } else if (opNode->data == "log") {
-                    if (operand2 > 0) {
-                        result = log10(operand2);
-                    } else {
-                        cout << "Error: Logarithm of a non-positive number." << endl;
-                        return 0;
-                    }
-                } else if (opNode->data == "ln") {
-                    if (operand2 > 0) {
-                        result = log(operand2);
-                    } else {
-                        cout << "Error: Natural logarithm of a non-positive number." << endl;
-                        return 0;
-                    }
                 } else if (opNode->data == "^") {
                     result = pow(operand1, operand2);
                 }
@@ -160,8 +142,10 @@ double prioritizeOperators(Node* head) {
             }
             operatorStack.push(current);
         } else if (current->data == "sin" || current->data == "cos" || current->data == "tan" ||
-                   current->data == "asin" || current->data == "acos" || current->data == "atan") {
-            // Handle trigonometric functions and their inverses
+                   current->data == "asin" || current->data == "acos" || current->data == "atan" ||
+                   current->data == "sqrt" || current->data == "exp" || current->data == "log" ||
+                   current->data == "ln" || current->data == "log2") {
+            // Handle trigonometric functions and their inverses, sqrt, exp, log, ln, log2
             operatorStack.push(current);
         } else {
             // Handle other operators
@@ -227,6 +211,16 @@ double prioritizeOperators(Node* head) {
                 valueStack.push(log(operand));
             } else {
                 cout << "Error: Natural logarithm of a non-positive number." << endl;
+                return 0;
+            }
+        } else if (opNode->data == "log2") {
+            // Handle logarithm base 2
+            double operand = valueStack.top();
+            valueStack.pop();
+            if (operand > 0) {
+                valueStack.push(log2(operand));
+            } else {
+                cout << "Error: Logarithm base 2 of a non-positive number." << endl;
                 return 0;
             }
         } else {
