@@ -4,7 +4,6 @@
 #include <cctype>
 #include <cmath>
 #include <vector>
-#include "History.h"
 
 using namespace std;
 
@@ -82,8 +81,10 @@ double prioritizeOperators(Node* head) {
                 operatorStack.pop(); // Remove the opening parenthesis
             }
         } else if (current->data == "+" || current->data == "-" || current->data == "*" || current->data == "/") {
-            // Handle operators with priority
-            while (!operatorStack.empty() && (operatorStack.top()->data == "*" || operatorStack.top()->data == "/")) {
+            // Handle operators
+            while (!operatorStack.empty() &&
+                   ((operatorStack.top()->data == "*" || operatorStack.top()->data == "/") ||
+                    (operatorStack.top()->data == "+" || operatorStack.top()->data == "-"))) {
                 Node* opNode = operatorStack.top();
                 operatorStack.pop();
                 double operand2 = valueStack.top();
@@ -108,9 +109,6 @@ double prioritizeOperators(Node* head) {
                 valueStack.push(result);
             }
             operatorStack.push(current);
-        } else if (current->data == "sin" || current->data == "cos") {
-            // Handle trigonometric functions
-            operatorStack.push(current);
         } else {
             // Handle other operators
             cout << "Invalid operator: " << current->data << endl;
@@ -122,40 +120,27 @@ double prioritizeOperators(Node* head) {
     while (!operatorStack.empty()) {
         Node* opNode = operatorStack.top();
         operatorStack.pop();
-        if (opNode->data == "sin" || opNode->data == "cos") {
-            // Handle trigonometric functions
-            double operand = valueStack.top();
-            valueStack.pop();
-            double result;
-            if (opNode->data == "sin") {
-                result = sin(operand);
-            } else if (opNode->data == "cos") {
-                result = cos(operand);
+        // Handle other operators
+        double operand2 = valueStack.top();
+        valueStack.pop();
+        double operand1 = valueStack.top();
+        valueStack.pop();
+        double result;
+        if (opNode->data == "+") {
+            result = operand1 + operand2;
+        } else if (opNode->data == "-") {
+            result = operand1 - operand2;
+        } else if (opNode->data == "*") {
+            result = operand1 * operand2;
+        } else if (opNode->data == "/") {
+            if (operand2 != 0) {
+                result = operand1 / operand2;
+            } else {
+                cout << "Error: Division by zero." << endl;
+                return 0;
             }
-            valueStack.push(result);
-        } else {
-            // Handle other operators
-            double operand2 = valueStack.top();
-            valueStack.pop();
-            double operand1 = valueStack.top();
-            valueStack.pop();
-            double result;
-            if (opNode->data == "+") {
-                result = operand1 + operand2;
-            } else if (opNode->data == "-") {
-                result = operand1 - operand2;
-            } else if (opNode->data == "*") {
-                result = operand1 * operand2;
-            } else if (opNode->data == "/") {
-                if (operand2 != 0) {
-                    result = operand1 / operand2;
-                } else {
-                    cout << "Error: Division by zero." << endl;
-                    return 0;
-                }
-            }
-            valueStack.push(result);
         }
+        valueStack.push(result);
     }
 
     if (!valueStack.empty()) {
@@ -168,7 +153,7 @@ double prioritizeOperators(Node* head) {
 
 int main() {
     string input;
-    History history;  // Store calculation history
+    vector<HistoryEntry> history;  // Store calculation history
 
     while (true) {
         cout << "Enter a mathematical expression (or 'history', 'delete', or 'exit'): ";
@@ -178,7 +163,9 @@ int main() {
             break;
         } else if (input == "history") {
             // Show calculation history
-            history.ShowHistory();
+            for (size_t i = 0; i < history.size(); ++i) {
+                cout << i + 1 << ": " << history[i].expression << " = " << history[i].result << endl;
+            }
             continue;
         } else if (input == "delete") {
             // Delete a specific entry from history
@@ -187,7 +174,13 @@ int main() {
             cin >> entryToDelete;
             cin.ignore();  // Consume the newline character
 
-            history.DeleteEntry(entryToDelete);
+            if (entryToDelete >= 1 && entryToDelete <= static_cast<int>(history.size())) {
+                history.erase(history.begin() + entryToDelete - 1);
+                cout << "Entry " << entryToDelete << " deleted from history." << endl;
+            } else {
+                cout << "Invalid entry number." << endl;
+            }
+
             continue;
         }
 
@@ -222,7 +215,7 @@ int main() {
         double result = prioritizeOperators(head);
         if (result != 0) {
             cout << "Result: " << result << endl;
-            history.AddEntry(input, result); // Add to history
+            history.emplace_back(input, result);  // Add to history
         }
     }
 
