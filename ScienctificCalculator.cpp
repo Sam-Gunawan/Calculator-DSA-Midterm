@@ -4,7 +4,7 @@
 #include <cctype>
 #include <cmath>
 #include <vector>
-#define CALCULATOR_HPP
+#include "History.h"
 
 using namespace std;
 
@@ -38,7 +38,7 @@ void insertAtEnd(Node*& head, Node*& tail, const string& val) {
 }
 
 // Function to prioritize operators in the linked list
-double prioritizeOperators(Node* head) {
+double prioritizeOperators(Node* head, int* flag_ptr) {
     stack<Node*> operatorStack;
     stack<double> valueStack;  // Stack to store operand values
 
@@ -82,9 +82,10 @@ double prioritizeOperators(Node* head) {
                 operatorStack.pop(); // Remove the opening parenthesis
             }
         } else if (current->data == "+" || current->data == "-" || current->data == "*" || current->data == "/") {
-            // Handle operators with priority
+            // Handle operators
             while (!operatorStack.empty() &&
-                   (operatorStack.top()->data == "*" || operatorStack.top()->data == "/")) {
+                   ((operatorStack.top()->data == "*" || operatorStack.top()->data == "/") ||
+                    (operatorStack.top()->data == "+" || operatorStack.top()->data == "-"))) {
                 Node* opNode = operatorStack.top();
                 operatorStack.pop();
                 double operand2 = valueStack.top();
@@ -109,12 +110,10 @@ double prioritizeOperators(Node* head) {
                 valueStack.push(result);
             }
             operatorStack.push(current);
-        } else if (current->data == "sin" || current->data == "cos") {
-            // Handle trigonometric functions
-            operatorStack.push(current);
         } else {
             // Handle other operators
             cout << "Invalid operator: " << current->data << endl;
+            *flag_ptr = 1;
             return 0;
         }
     }
@@ -123,53 +122,43 @@ double prioritizeOperators(Node* head) {
     while (!operatorStack.empty()) {
         Node* opNode = operatorStack.top();
         operatorStack.pop();
-        if (opNode->data == "sin" || opNode->data == "cos") {
-            // Handle trigonometric functions
-            double operand = valueStack.top();
-            valueStack.pop();
-            double result;
-            if (opNode->data == "sin") {
-                result = sin(operand);
-            } else if (opNode->data == "cos") {
-                result = cos(operand);
+        // Handle other operators
+        double operand2 = valueStack.top();
+        valueStack.pop();
+        double operand1 = valueStack.top();
+        valueStack.pop();
+        double result;
+        if (opNode->data == "+") {
+            result = operand1 + operand2;
+        } else if (opNode->data == "-") {
+            result = operand1 - operand2;
+        } else if (opNode->data == "*") {
+            result = operand1 * operand2;
+        } else if (opNode->data == "/") {
+            if (operand2 != 0) {
+                result = operand1 / operand2;
+            } else {
+                cout << "Error: Division by zero." << endl;
+                return 0;
             }
-            valueStack.push(result);
-        } else {
-            // Handle other operators
-            double operand2 = valueStack.top();
-            valueStack.pop();
-            double operand1 = valueStack.top();
-            valueStack.pop();
-            double result;
-            if (opNode->data == "+") {
-                result = operand1 + operand2;
-            } else if (opNode->data == "-") {
-                result = operand1 - operand2;
-            } else if (opNode->data == "*") {
-                result = operand1 * operand2;
-            } else if (opNode->data == "/") {
-                if (operand2 != 0) {
-                    result = operand1 / operand2;
-                } else {
-                    cout << "Error: Division by zero." << endl;
-                    return 0;
-                }
-            }
-            valueStack.push(result);
         }
+        valueStack.push(result);
     }
 
     if (!valueStack.empty()) {
         return valueStack.top();
     } else {
         cout << "Invalid expression." << endl;
+        *flag_ptr = 1;
         return 0;
     }
 }
 
 int main() {
     string input;
-    vector<HistoryEntry> history;  // Store calculation history
+    History history;  // Store calculation history
+    int flag = 0;
+    int* flag_ptr = &flag;
 
     while (true) {
         cout << "Enter a mathematical expression (or 'history', 'delete', or 'exit'): ";
@@ -179,9 +168,7 @@ int main() {
             break;
         } else if (input == "history") {
             // Show calculation history
-            for (size_t i = 0; i < history.size(); ++i) {
-                cout << i + 1 << ": " << history[i].expression << " = " << history[i].result << endl;
-            }
+            history.ShowHistory();
             continue;
         } else if (input == "delete") {
             // Delete a specific entry from history
@@ -190,12 +177,7 @@ int main() {
             cin >> entryToDelete;
             cin.ignore();  // Consume the newline character
 
-            if (entryToDelete >= 1 && entryToDelete <= static_cast<int>(history.size())) {
-                history.erase(history.begin() + entryToDelete - 1);
-                cout << "Entry " << entryToDelete << " deleted from history." << endl;
-            } else {
-                cout << "Invalid entry number." << endl;
-            }
+            history.DeleteEntry(entryToDelete);
 
             continue;
         }
@@ -228,10 +210,11 @@ int main() {
         }
 
         // Prioritize operators in the linked list and evaluate the expression
-        double result = prioritizeOperators(head);
-        if (result != 0) {
+        flag = 0; // reset flag
+        double result = prioritizeOperators(head, flag_ptr);
+        if (!flag) {
             cout << "Result: " << result << endl;
-            history.emplace_back(input, result);  // Add to history
+            history.AddEntry(input, result); // Add to history
         }
     }
 
@@ -239,4 +222,3 @@ int main() {
 
     return 0;
 }
-
