@@ -4,7 +4,7 @@
 #include <cctype>
 #include <cmath>
 #include <vector>
-#define CALCULATOR_HPP
+#include <sstream>
 
 using namespace std;
 
@@ -81,10 +81,11 @@ double prioritizeOperators(Node* head) {
             if (!operatorStack.empty()) {
                 operatorStack.pop(); // Remove the opening parenthesis
             }
-        } else if (current->data == "+" || current->data == "-" || current->data == "*" || current->data == "/") {
+        } else if (current->data == "+" || current->data == "-" || current->data == "*" || current->data == "/" || current->data == "sin" || current->data == "cos" || current->data == "tan") {
             // Handle operators with priority
             while (!operatorStack.empty() &&
-                   (operatorStack.top()->data == "*" || operatorStack.top()->data == "/")) {
+                   ((operatorStack.top()->data == "*" || operatorStack.top()->data == "/" || operatorStack.top()->data == "sin" || operatorStack.top()->data == "cos" || operatorStack.top()->data == "tan") ||
+                    (current->data == "+" || current->data == "-") && (operatorStack.top()->data == "+" || operatorStack.top()->data == "-"))) {
                 Node* opNode = operatorStack.top();
                 operatorStack.pop();
                 double operand2 = valueStack.top();
@@ -109,9 +110,6 @@ double prioritizeOperators(Node* head) {
                 valueStack.push(result);
             }
             operatorStack.push(current);
-        } else if (current->data == "sin" || current->data == "cos") {
-            // Handle trigonometric functions
-            operatorStack.push(current);
         } else {
             // Handle other operators
             cout << "Invalid operator: " << current->data << endl;
@@ -123,17 +121,24 @@ double prioritizeOperators(Node* head) {
     while (!operatorStack.empty()) {
         Node* opNode = operatorStack.top();
         operatorStack.pop();
-        if (opNode->data == "sin" || opNode->data == "cos") {
+        if (opNode->data == "sin" || opNode->data == "cos" || opNode->data == "tan") {
             // Handle trigonometric functions
-            double operand = valueStack.top();
-            valueStack.pop();
-            double result;
-            if (opNode->data == "sin") {
-                result = sin(operand);
-            } else if (opNode->data == "cos") {
-                result = cos(operand);
+            if (!valueStack.empty()) {
+                double operand = valueStack.top();
+                valueStack.pop();
+                double result;
+                if (opNode->data == "sin") {
+                    result = sin(operand * M_PI / 180.0); // Convert degrees to radians
+                } else if (opNode->data == "cos") {
+                    result = cos(operand * M_PI / 180.0); // Convert degrees to radians
+                } else if (opNode->data == "tan") {
+                    result = tan(operand * M_PI / 180.0); // Convert degrees to radians
+                }
+                valueStack.push(result);
+            } else {
+                cout << "Error: Missing operand for " << opNode->data << endl;
+                return 0;
             }
-            valueStack.push(result);
         } else {
             // Handle other operators
             double operand2 = valueStack.top();
@@ -212,6 +217,9 @@ int main() {
             } else if (isdigit(c) || c == '.') {
                 // Accumulate digits and dots to form a number
                 currentToken += c;
+            } else if (isalpha(c)) {
+                // Handle trigonometric functions
+                currentToken += c;
             } else {
                 if (!currentToken.empty()) {
                     insertAtEnd(head, tail, currentToken);
@@ -239,4 +247,3 @@ int main() {
 
     return 0;
 }
-
