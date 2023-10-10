@@ -17,14 +17,6 @@ struct Node {
     Node(const string& val) : data(val), prev(nullptr), next(nullptr) {}
 };
 
-// Define a structure for history entries
-struct HistoryEntry {
-    string expression;
-    double result;
-
-    HistoryEntry(const string& exp, double res) : expression(exp), result(res) {}
-};
-
 // Function to insert a new node at the end of the linked list
 void insertAtEnd(Node*& head, Node*& tail, const string& val) {
     Node* newNode = new Node(val);
