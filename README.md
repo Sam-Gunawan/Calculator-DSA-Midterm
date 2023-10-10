@@ -7,7 +7,7 @@ This method promises a correct way of calculation, in order with the mathematica
 Users would get to enter a series of working under one line instead of doing it multiple times. 
 The calculations includes:
 -addition, subtraction, division and multiplications
--trigonometries (sine, cosine, tangent, sinh, cosh, tanh)
+-trigonometries (sine, cosine, tangent, asin, acos, atan)
 -logarithm and surds
 
 with these in mind the calculator promises a function almost similar towards the scientific calculator itself.
