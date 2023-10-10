@@ -4,6 +4,7 @@
 #include <cctype>
 #include <cmath>
 #include <vector>
+define CALCULATOR_HPP
 
 using namespace std;
 
